@@ -97,6 +97,9 @@ public:
   // Write the frequencies header to stdout (matrix format only)
   void write_header(Plan plan) const;
 
+  void get_power() const;
+  
+
 protected:
   // A helper function that returns the current date and time in the format
   // "YYYY-MM-DD HH:mm:ss UTC".

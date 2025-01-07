@@ -357,6 +357,38 @@ void Acquisition::print_summary() const {
     (double)params.N * data.repeats_done / actual_samplerate << " seconds" << std::endl;
 }
 
+void Acquisition::get_power() const {
+  double pwrdb = 0.0;
+  float fpwrdb = 0.0;
+  double freq = 0.0;
+
+  //Interpolate the central point, to cancel DC bias.
+  data.pwr[params.N/2] = (data.pwr[params.N/2 - 1] + data.pwr[params.N/2+1]) / 2;
+
+  // Calculate the precision needed for displaying the frequency.
+  const int extraDigitsFreq = 2;
+  const int significantPlacesFreq = ceil(floor(log10(tuned_freq)) - log10(actual_samplerate/params.N) + 1 + extraDigitsFreq);
+  const int significantPlacesPwr = 6;
+
+  for (int i = 0; i < params.N; i++) {
+    freq = tuned_freq + (i - params.N/2.0) * actual_samplerate / params.N;
+    if( params.linear ) {
+      pwrdb = (data.pwr[i] / data.repeats_done / params.N / actual_samplerate)
+                     - (params.baseline ? aux.baseline_values[i] : 0);
+    }
+    else {
+      pwrdb = 10*log10(data.pwr[i] / data.repeats_done / params.N / actual_samplerate)
+                     - (params.baseline ? aux.baseline_values[i] : 0);
+    }
+
+    std::cout << std::setprecision(significantPlacesFreq)
+              << freq << " "
+              << std::setprecision(significantPlacesPwr)
+              << pwrdb << std::endl;
+  }
+}
+
+
 void Acquisition::write_data() const {
 
   std::ofstream binfile;
